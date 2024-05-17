@@ -14,13 +14,13 @@
 
 import Connect
 import Foundation
+import Logging
 import NIOConcurrencyHelpers
 import NIOCore
 import NIOHTTP1
 import NIOHTTP2
 import NIOPosix
 import NIOSSL
-import os.log
 
 /// HTTP client powered by Swift NIO which supports trailers (unlike URLSession).
 open class NIOHTTPClient: Connect.HTTPClientInterface, @unchecked Sendable {
@@ -193,7 +193,7 @@ open class NIOHTTPClient: Connect.HTTPClientInterface, @unchecked Sendable {
         guard case .disconnected = self.state else {
             return
         }
-
+        let logger = Logger(label: "NIOHTTPClient.connectChannelAndMultiplexerIfNeeded")
         self.state = .connecting
         self.bootstrap
             .connect(host: self.host, port: self.port)
@@ -213,7 +213,7 @@ open class NIOHTTPClient: Connect.HTTPClientInterface, @unchecked Sendable {
                         self?.flushOrFailPendingRequests(using: multiplexer)
                     }
                 case .failure(let error):
-                    os_log(.error, "NIOHTTPClient disconnected: %@", "\(error)")
+                    logger.error("NIOHTTPClient disconnected: %@", "\(error)")
                     self?.lock.withLock {
                         self?.state = .disconnected
                         self?.flushOrFailPendingRequests(using: nil)

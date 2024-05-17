@@ -63,12 +63,14 @@ let package = Package(
             url: "https://github.com/apple/swift-protobuf.git",
             from: "1.26.0"
         ),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
     targets: [
         .target(
             name: "Connect",
             dependencies: [
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
+                .product(name: "Logging", package: "swift-log"),
             ],
             path: "Libraries/Connect",
             exclude: [

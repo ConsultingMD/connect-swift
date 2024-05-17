@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import Foundation
-import os.log
+import Logging
 
 /// Concrete implementation of `HTTPClientInterface` backed by `URLSession`.
 ///
@@ -98,6 +98,7 @@ open class URLSessionHTTPClient: NSObject, HTTPClientInterface, @unchecked Senda
         request: HTTPRequest<Data?>, responseCallbacks: ResponseCallbacks
     ) -> RequestCallbacks<Data> {
         assert(!request.isGRPC, "URLSessionHTTPClient does not support gRPC, use NIOHTTPClient")
+        let logger = Logger(label: "URLSessionHTTPClient.stream")
         let urlSessionStream = URLSessionStream(
             request: URLRequest(httpRequest: request),
             session: self.session,
@@ -113,10 +114,8 @@ open class URLSessionHTTPClient: NSObject, HTTPClientInterface, @unchecked Senda
                 do {
                     try urlSessionStream.sendData(data)
                 } catch let error {
-                    os_log(
-                        .error,
-                        "Failed to write data to stream - closing connection: %@",
-                        error.localizedDescription
+                    logger.error(
+                        "Failed to write data to stream - closing connection: \(error.localizedDescription)"
                     )
                     urlSessionStream.close()
                 }

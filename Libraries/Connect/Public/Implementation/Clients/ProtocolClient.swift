@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import Foundation
-import os.log
+import Logging
 import SwiftProtobuf
 
 /// Concrete implementation of the `ProtocolClientInterface`.
@@ -241,6 +241,7 @@ extension ProtocolClient: ProtocolClientInterface {
         headers: Headers,
         onResult: @escaping @Sendable (StreamResult<Output>) -> Void
     ) -> RequestCallbacks<Input> {
+        let logger = Logger(label: "ProtocolClient.createRequestCallbacks")
         let codec = self.config.codec
         let responseBuffer = Locked(Data())
         let hasCompleted = Locked(false)
@@ -376,10 +377,8 @@ extension ProtocolClient: ProtocolClientInterface {
                         do {
                             proceed(try codec.serialize(message: interceptedMessage))
                         } catch let error {
-                            os_log(
-                                .error,
-                                "Failed to send request message which could not be serialized: %@",
-                                error.localizedDescription
+                            logger.error(
+                                "Failed to send request message which could not be serialized: \(error.localizedDescription)"
                             )
                         }
                     },
@@ -471,6 +470,8 @@ private extension StreamResult<Data> {
     func toTyped<Message: ProtobufMessage>(
         _ type: Message.Type, using codec: Codec
     ) -> StreamResult<Message>? {
+        
+        let logger = Logger(label: "ProtocolClient.StreamResult")
         switch self {
         case .complete(let code, let error, let trailers):
             return .complete(code: code, error: error, trailers: trailers)
@@ -480,10 +481,8 @@ private extension StreamResult<Data> {
             do {
                 return .message(try codec.deserialize(source: data))
             } catch let error {
-                os_log(
-                    .error,
-                    "Stream result failed to deserialize: %@",
-                    error.localizedDescription
+                logger.error(
+                    "Stream result failed to deserialize: \(error.localizedDescription)"
                 )
                 return nil
             }
