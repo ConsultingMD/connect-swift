@@ -77,6 +77,9 @@ let package = Package(
                 "buf.gen.yaml",
                 "proto",
                 "README.md",
+            ],
+            linkerSettings: [
+                .linkedLibrary("z")
             ]
         ),
         .executableTarget(
